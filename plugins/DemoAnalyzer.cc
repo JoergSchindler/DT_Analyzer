@@ -81,7 +81,7 @@
 // constructor "usesResource("TFileService");"
 // This will improve performance in multithreaded jobs.
 
-struct muonDtLayer{
+struct muonDtChamber{
   int id;
   int wheel;
   int sector;
@@ -127,9 +127,9 @@ class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       long int nGenLL;
       int nGenLL_inside_DT;
       float gen_b_radius;
-      int nDtDetLayer;
+      int nDtchambers;
       
-      int dtDetLayer[15000];
+
       
       float DtSimHitsPhi[15000];
       float DtSimHitsEta[15000];
@@ -140,7 +140,7 @@ class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       int DTSimHitLayer[15000];
       int DTSimHitWire[15000];
       int DTSimHitDetId[15000];
-      int nDtSimHitsperLayer[15000];
+      int nDtSimHitsperChamber[15000];
       
       int DtRecHitsStation[15000];
       int DtRecHitsSector[15000];
@@ -149,7 +149,7 @@ class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       int DTRecHitLayer[15000];
       int DTRecHitWire[15000];
       int DTRecHitDetId[15000];
-      int nDtRecHitsperLayer[15000];
+      int nDtRecHitsperChamber[15000];
       
       float DtSimHits_match_gParticle_minDeltaR[15000];
       float DtSimHits_match_gParticle_index[15000];
@@ -191,7 +191,7 @@ DemoAnalyzer::DemoAnalyzer(const edm::ParameterSet& iConfig):
    displacedJetMuonTree->Branch("nmatched",&nmatched,"nmatched/I");  
    displacedJetMuonTree->Branch("nDtRecHits",&nDtRecHits,"nDtRecHits/I");
    displacedJetMuonTree->Branch("nDtSimHits",&nDtSimHits,"nDtSimHits/I");
-   displacedJetMuonTree->Branch("nDtDetLayer",&nDtDetLayer,"nDtDetLayer/I");
+   displacedJetMuonTree->Branch("nDtchambers",&nDtchambers,"nDtchambers/I");
    
 
    displacedJetMuonTree->Branch("DtSimHits_match_gParticle_minDeltaR",&DtSimHits_match_gParticle_minDeltaR,"DtSimHits_match_gParticle_minDeltaR[nDtSimHits]/I");
@@ -212,8 +212,8 @@ DemoAnalyzer::DemoAnalyzer(const edm::ParameterSet& iConfig):
    displacedJetMuonTree->Branch("DTSimHitLayer",&DTSimHitLayer,"DTSimHitLayer[nDtSimHits]/I");
    displacedJetMuonTree->Branch("DTSimHitWire",&DTSimHitWire,"DTSimHitWire[nDtSimHits]/I");
    
-   displacedJetMuonTree->Branch("nDtSimHitsperLayer",&nDtSimHitsperLayer,"nDtSimHitsperLayer[nDtDetLayer]/I");
-   displacedJetMuonTree->Branch("nDtRecHitsperLayer",&nDtRecHitsperLayer,"nDtRecHitsperLayer[nDtDetLayer]/I");
+   displacedJetMuonTree->Branch("nDtSimHitsperChamber",&nDtSimHitsperChamber,"nDtSimHitsperChamber[nDtchambers]/I");
+   displacedJetMuonTree->Branch("nDtRecHitsperChamber",&nDtRecHitsperChamber,"nDtRecHitsperChamber[nDtchambers]/I");
    
    displacedJetMuonTree->Branch("GenLLPs", &GenLLPs);
    displacedJetMuonTree->Branch("GenBquarks", &GenBquarks);
@@ -292,7 +292,7 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     
    
-   std::vector<int> detLayers;
+   std::vector<int> dtchamber_vec;
     //std::cout << "Number of dt rec hits: "<<dtRechits->size()<<std::endl;
    nDtRecHits=0;
 
@@ -310,10 +310,10 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         if (dtchamber) {
             //DtRecHitsStation[nDtRecHits] = dtchamber->id().station();
             DTRecHitDetId[nDtRecHits]= dtdetid.rawId();
-             if (!(std::find(detLayers.begin(), detLayers.end(), DTRecHitDetId[nDtRecHits]) != detLayers.end()))
+             if (!(std::find(dtchamber_vec.begin(), dtchamber_vec.end(), DTRecHitDetId[nDtRecHits]) != dtchamber_vec.end()))
              {
 
-              detLayers.push_back(DTRecHitDetId[nDtRecHits]);
+              dtchamber_vec.push_back(DTRecHitDetId[nDtRecHits]);
 
              }
 
@@ -348,10 +348,11 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	if (dtchamber) {
 	GlobalPoint globalPosition = dtchamber->toGlobal(DTSimHitLocalPosition);
         DTSimHitDetId[i]= dtchamberdetid.rawId();
-             if (!(std::find(detLayers.begin(), detLayers.end(), DTRecHitDetId[nDtRecHits]) != detLayers.end()))
+        
+             if (!(std::find(dtchamber_vec.begin(), dtchamber_vec.end(), DTSimHitDetId[nDtSimHits]) != dtchamber_vec.end()))
              {
 
-              detLayers.push_back(DTRecHitDetId[nDtRecHits]);
+              dtchamber_vec.push_back(DTSimHitDetId[nDtSimHits]);
 
              }
         
@@ -366,41 +367,44 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         nDtSimHits++;
 	}
   }
-  std::vector<muonDtLayer> dtLayers;
-  nDtDetLayer = detLayers.size();
+  std::vector<muonDtChamber> dtchamber_custom_vec;
+  nDtchambers = dtchamber_vec.size();
   
       for(unsigned int i = 0; i < GenLongLivedVect.size(); i++) ObjectsFormat::FillGenPType(GenLLPs[i], &GenLongLivedVect[i]);
       for(unsigned int i = 0; i < GenBquarksVect.size(); i++) ObjectsFormat::FillGenPType(GenBquarks[i], &GenBquarksVect[i]);
 
-  for( int i = 0; i < nDtDetLayer; i++)
+  for( int i = 0; i < nDtchambers; i++)
   {
-    muonDtLayer tmpLayer;
-    tmpLayer.nSimHits = 0;
-    tmpLayer.nRecHits = 0;
+    muonDtChamber tmpChamber;
+    tmpChamber.nSimHits = 0;
+    tmpChamber.nRecHits = 0;
     
     for (int j = 0; j < nDtRecHits; j++)
     {
-      if (detLayers[i] == DTRecHitDetId[j])
-      tmpLayer.nRecHits++;
+      if (dtchamber_vec[i] == DTRecHitDetId[j])
+      tmpChamber.nRecHits++;
     }
     for (int j = 0; j < nDtSimHits; j++)
     {
-      if (detLayers[i] ==  DTSimHitDetId[j])
+      if (dtchamber_vec[i] ==  DTSimHitDetId[j])
       {
-        tmpLayer.nSimHits++;
+        tmpChamber.nSimHits++;
       }
 
     }
-    tmpLayer.id = detLayers[i];
-    dtLayers.push_back(tmpLayer);
+    
+    tmpChamber.id = dtchamber_vec[i];
+    DTChamberId dtchamberdetid = DTChamberId(dtchamber_vec[i]);
+    std::cout<<dtchamberdetid.station()<<std::endl;
+    dtchamber_custom_vec.push_back(tmpChamber);
   }
   
-  for(unsigned int i = 0; i < dtLayers.size();i++)
+  for(unsigned int i = 0; i < dtchamber_custom_vec.size();i++)
   {
-
-    dtDetLayer[i] = dtLayers[i].id;
-    nDtRecHitsperLayer[i]  = dtLayers[i].nRecHits;
-    nDtSimHitsperLayer[i]  = dtLayers[i].nSimHits;
+    
+    nDtRecHitsperChamber[i]  = dtchamber_custom_vec[i].nRecHits;
+    nDtSimHitsperChamber[i]  = dtchamber_custom_vec[i].nSimHits;
+    
       
     }   
       
