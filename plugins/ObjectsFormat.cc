@@ -1999,6 +1999,36 @@ void ObjectsFormat::ResetCSCSegmentType(CSCSegmentType& I) {
 
 std::string ObjectsFormat::ListCSCSegmentType() {return "eta/F:phi/F:time/F:layer/I:ring/I:station/I:endcap/I";}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+  
+   
+    
+
+
+
+
+
+
+
+
+
 //**************************//
 //      Track              //
 //************************//

@@ -7,6 +7,8 @@
   <class name="DT4DSegmentType"/>
   <class name="CSCSegmentType"/>
   <class name="TrackType"/>
+  <class name="muonDtChamber"/>
+  <class name="muonDtLayer"/>
   <class name="std::vector<RecoJetType>"/>
   <class name="std::vector<CaloJetType>"/>
   <class name="std::vector<GenPType>"/>
@@ -15,6 +17,7 @@
   <class name="std::vector<DT4DSegmentType>"/>
   <class name="std::vector<CSCSegmentType>"/>
   <class name="std::vector<TrackType>"/>
-
+  <class name="std::vector<muonDtChamber>"/>
+  <class name="std::vector<muonDtLayer>"/>
 
 </lcgdict>

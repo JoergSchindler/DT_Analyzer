@@ -954,6 +954,30 @@ CSCSegmentType(): eta(-9.), phi(-9.), time(-9.), layer(-9), ring(-9) , station(-
 
 };
 
+struct muonDtChamber{
+  muonDtChamber(): id(-9), wheel(-9), sector(-9), station(-9), nSimHits(-9), nRecHits(-9){}
+  int id;
+  int wheel;
+  int sector;
+  int station;
+  int nSimHits;
+  int nRecHits;
+};
+
+struct muonDtLayer{
+  muonDtLayer(): id(-9), wheel(-9), sector(-9), station(-9),superlayer(-9), layer(-9), nSimHits(-9), nRecHits(-9){}
+  int id;
+  int wheel;
+  int sector;
+  int station;
+  int superlayer;
+  int layer;
+  int nSimHits;
+  int nRecHits;
+
+};
+
+
 
 struct TrackType {
 TrackType():

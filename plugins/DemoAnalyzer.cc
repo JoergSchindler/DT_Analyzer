@@ -80,7 +80,7 @@
 // from  edm::one::EDAnalyzer<> and also remove the line from
 // constructor "usesResource("TFileService");"
 // This will improve performance in multithreaded jobs.
-
+/*
 struct muonDtChamber{
   int id;
   int wheel;
@@ -93,7 +93,7 @@ struct muonDtChamber{
 
 
 };
-
+*/
 class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
    public:
       explicit DemoAnalyzer(const edm::ParameterSet&);
@@ -119,6 +119,9 @@ class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
    
       std::vector<GenPType> GenBquarks;
       std::vector<GenPType> GenLLPs;
+      std::vector<muonDtChamber> dtchamber_custom_vec;
+      std::vector<muonDtLayer> dtlayer_custom_vec;
+
       double MinGenBpt, MaxGenBeta;
       int nDtRecHits;
       int nDtSimHits;
@@ -128,7 +131,7 @@ class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       int nGenLL_inside_DT;
       float gen_b_radius;
       int nDtchambers;
-      
+      int nDtlayers;      
 
       
       float DtSimHitsPhi[15000];
@@ -140,6 +143,7 @@ class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       int DTSimHitLayer[15000];
       int DTSimHitWire[15000];
       int DTSimHitDetId[15000];
+      int DTSimHitLayerId[15000];
       int nDtSimHitsperChamber[15000];
       
       int DtRecHitsStation[15000];
@@ -149,6 +153,7 @@ class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       int DTRecHitLayer[15000];
       int DTRecHitWire[15000];
       int DTRecHitDetId[15000];
+      int DTRecHitLayerId[15000];
       int nDtRecHitsperChamber[15000];
       
       float DtSimHits_match_gParticle_minDeltaR[15000];
@@ -220,6 +225,9 @@ DemoAnalyzer::DemoAnalyzer(const edm::ParameterSet& iConfig):
    displacedJetMuonTree->Branch("nGenBquarks" , &nGenBquarks , "nGenBquarks/I");
    displacedJetMuonTree->Branch("nGenLL" , &nGenLL , "nGenLL/I");
    displacedJetMuonTree->Branch("gen_b_radius" , &gen_b_radius , "gen_b_radius/F");
+   displacedJetMuonTree->Branch("dtchamber_custom_vec", &dtchamber_custom_vec);
+   displacedJetMuonTree->Branch("dtlayer_custom_vec", &dtlayer_custom_vec);
+
    
    theGenAnalyzer         = new GenAnalyzer(GenPSet, consumesCollector());
 
@@ -247,6 +255,8 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    NEvents->Fill(0); 
    GenLLPs.clear();
    GenBquarks.clear();
+   dtchamber_custom_vec.clear();
+   dtlayer_custom_vec.clear();
    iEvent.getByToken(dtRechitInputToken_,dtRechits);
    iEvent.getByToken(MuonDTSimHitsToken_, MuonDTSimHits);
    edm::ESHandle<DTGeometry> dtG;
@@ -293,6 +303,7 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     
    
    std::vector<int> dtchamber_vec;
+   std::vector<int> dtlayer_vec;
     //std::cout << "Number of dt rec hits: "<<dtRechits->size()<<std::endl;
    nDtRecHits=0;
 
@@ -314,6 +325,13 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
              {
 
               dtchamber_vec.push_back(DTRecHitDetId[nDtRecHits]);
+
+             }
+            DTRecHitLayerId[nDtRecHits]= layerid.rawId();
+            if (!(std::find(dtlayer_vec.begin(), dtlayer_vec.end(), DTRecHitLayerId[nDtRecHits]) != dtlayer_vec.end()))
+             {
+
+              dtlayer_vec.push_back(DTRecHitLayerId[nDtRecHits]);
 
              }
 
@@ -355,7 +373,16 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
               dtchamber_vec.push_back(DTSimHitDetId[nDtSimHits]);
 
              }
-        
+        DTSimHitLayerId[nDtSimHits]= layerid.rawId();
+            if (!(std::find(dtlayer_vec.begin(), dtlayer_vec.end(), DTSimHitLayerId[nDtSimHits]) != dtlayer_vec.end()))
+             {
+
+              dtlayer_vec.push_back(DTSimHitLayerId[nDtSimHits]);
+
+             }
+       
+
+ 
         DtSimHitsStation[i] = dtchamberdetid.station();
         DtSimHitsSector[i] = dtchamberdetid.sector();
         DTSimHitsWheel[i] = dtchamberdetid.wheel();
@@ -367,7 +394,7 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         nDtSimHits++;
 	}
   }
-  std::vector<muonDtChamber> dtchamber_custom_vec;
+  //std::vector<muonDtChamber> dtchamber_custom_vec;
   nDtchambers = dtchamber_vec.size();
   
       for(unsigned int i = 0; i < GenLongLivedVect.size(); i++) ObjectsFormat::FillGenPType(GenLLPs[i], &GenLongLivedVect[i]);
@@ -395,10 +422,60 @@ DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     tmpChamber.id = dtchamber_vec[i];
     DTChamberId dtchamberdetid = DTChamberId(dtchamber_vec[i]);
-    std::cout<<dtchamberdetid.station()<<std::endl;
+    
+    //std::cout<<dtchamberdetid.station()<<std::endl;
+    tmpChamber.station = dtchamberdetid.station();
+    tmpChamber.wheel = dtchamberdetid.wheel();
+    tmpChamber.sector = dtchamberdetid.sector();
+
     dtchamber_custom_vec.push_back(tmpChamber);
   }
-  
+
+  nDtlayers =  dtlayer_vec.size();
+for( int i = 0; i < nDtlayers; i++)
+  {
+    muonDtLayer tmpLayer;
+    tmpLayer.nSimHits = 0;
+    tmpLayer.nRecHits = 0;
+ 
+    //std::cout<<"+++++++++++++++++++++++++++++++++"<<std::endl;   
+ 
+    for (int j = 0; j < nDtRecHits; j++)
+    {
+      if (dtlayer_vec[i] == DTRecHitLayerId[j])
+      tmpLayer.nRecHits++;
+    }
+    for (int j = 0; j < nDtSimHits; j++)
+    {
+      if (dtlayer_vec[i] ==  DTSimHitLayerId[j])
+      {
+        tmpLayer.nSimHits++;
+        //std::cout<<DTSimHitLayer[j]<<std::endl;
+      }
+
+    }
+
+    tmpLayer.id = dtlayer_vec[i];
+    DTChamberId dtchamberdetid = DTChamberId(dtlayer_vec[i]);
+
+    //std::cout<<dtchamberdetid.station()<<std::endl;
+    tmpLayer.station = dtchamberdetid.station();
+    tmpLayer.wheel = dtchamberdetid.wheel();
+    tmpLayer.sector = dtchamberdetid.sector();
+    
+    DTLayerId layerid = DTLayerId(dtlayer_vec[i]);
+      
+    tmpLayer.superlayer = layerid.superLayer();
+    tmpLayer.layer = layerid.layer();
+    dtlayer_custom_vec.push_back(tmpLayer);
+   }
+                       
+
+
+
+
+  //std::cout<<dtchamber_custom_vec.size()<<std::endl;
+  //std::cout<<dtchamber_vec.size()<<std::endl; 
   for(unsigned int i = 0; i < dtchamber_custom_vec.size();i++)
   {
     

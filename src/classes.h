@@ -14,7 +14,8 @@ namespace {
     DT4DSegmentType dummy5;
     CSCSegmentType dummy6;
     TrackType dummy7;
-
+    muonDtChamber dummy8;
+    muonDtLayer dummy9;
 
     //Vector of structures                                                      
     std::vector<RecoJetType> dummyVector0;
@@ -25,5 +26,7 @@ namespace {
     std::vector<DT4DSegmentType> dummyVector5;
     std::vector<CSCSegmentType> dummyVector6;
     std::vector<TrackType> dummyVector7;
+    std::vector<muonDtChamber> dummyVector8;
+    std::vector<muonDtLayer> dummyVector9;
   };
 }
